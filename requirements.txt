@@ -1,0 +1,2 @@
+deepl~=1.18.0
+pathvalidate~=3.2.0
