@@ -8,19 +8,32 @@ You can use this application to translate a string of text directly or to transl
 
 The syntax for translating text is as follows:
 
+## Installation
 ```commandline
-python deeplcmd.py -t "text to be translated" -tl "target language code" -k "your deepl API key"
+git clone https://github.com/ilya-smut/deeplcmd
+cd deeplcmd
+pip install -e .
+```
+Please, note. You may want to create a virtual environment for the installation of the script
+```commandline
+python -m venv .venv
+.venv/bin/activate
+```
+read more about virtual environments here https://docs.python.org/3/library/venv.html
+
+```commandline
+deeplcmd -t "text to be translated" -tl "target language code" -k "your deepl API key"
 
 ```
 
 ```commandline
-python deeplcmd.py -t "text to be translated" -tl "target language code" -kf "file containing deepl API key"
+deeplcmd -t "text to be translated" -tl "target language code" -kf "file containing deepl API key"
 ```
 
 The syntax for translating a document is as follows:
 
 ```commandline
-python deeplcmd.py -f "input file" "output file" -tl "target language" -kf "file containing deepl API key"
+deeplcmd -f "input file" "output file" -tl "target language" -kf "file containing deepl API key"
 
 ```
 
@@ -31,20 +44,6 @@ python deeplcmd.py -f "input file" "output file" -tl "target language" -kf "file
 - `tl`, `-targetlanguage`: The language of translation. This is required.
 - `-keyfile`, `kf`: The file containing the DeepL API key
 - `k`, `-key`: Your DeepL API key
-
-### Examples
-```commandline
-python .\deeplcmd.py -t 'Привет! Как твои дела?' -tl "EN-GB" -kf .\keyfile.txt
-#output: Hey! How are you doing?
-```
-```commandline
-python .\deeplcmd.py -f .\trialdocs\testinput.txt .\trialdocs\testoutput.txt -tl "RU" -kf .\keyfile.txt
-File .\trialdocs\testoutput.txt already exists. Rewrite? [y/n] -> yes
-Output has been saved in .\trialdocs\testoutput.txt
-```
-
-
-
 
 ### Supported Languages
 

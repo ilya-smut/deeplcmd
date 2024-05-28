@@ -1,8 +1,7 @@
 import sys
+import click
 import deepl
-import argparse
 import os
-from pathvalidate.argparse import validate_filepath_arg
 
 TARGET_LANGUAGES = {
     "AR": "Arabic",
@@ -40,61 +39,97 @@ TARGET_LANGUAGES = {
     "ZH": "Chinese (simplified)"
 }
 
-parser = argparse.ArgumentParser(prog='python deeplcmd.py', description=r'CLI app that can translate texts or files '
-                                                                        'to different languages using deepl API '
-                                                                        'https://www.deepl.com/en/pro-api')
 
-group1 = parser.add_mutually_exclusive_group(required=True)
-group1.add_argument('-t', '--text', type=str, help='Text to be translated')
-group1.add_argument('-f', '--file', type=validate_filepath_arg, nargs=2, help='input file, output file')
-parser.add_argument('-tl', '--targetlanguage', required=True, help='language of translation (language code. i.e. RU '
-                                                                   'for Russian)')
-group2 = parser.add_mutually_exclusive_group(required=True)
-group2.add_argument('-kf', '--keyfile', type=validate_filepath_arg, help='file containing deepl API key')
-group2.add_argument('-k', '--key', type=str, help='your deepl API key')
-args = parser.parse_args()
+def init_translator(key):
+    return deepl.Translator(key)
 
-if args.targetlanguage.upper() not in TARGET_LANGUAGES:
-    print(f'Target language {args.targetlanguage} is not recognised.')
-    print('Please, use one of the following:', TARGET_LANGUAGES)
-    sys.exit()
 
-if args.key:
-    translator = deepl.Translator(args.key)
-elif args.keyfile:
-    if os.path.exists(args.keyfile):
-        with open(args.keyfile, 'r') as file:
-            key = file.read()
-            translator = deepl.Translator(key)
-    else:
-        print(f'Key file {args.keyfile} does not exists')
-        sys.exit()
-
-if args.text and args.targetlanguage:
-    try:
-        print(translator.translate_text(text=args.text, target_lang=args.targetlanguage))
-    except deepl.exceptions.AuthorizationException:
-        print('Authentication Failure. Check API key')
-        sys.exit()
-
-if args.file and args.targetlanguage:
-    input_path, output_path = tuple(args.file)
-    if os.path.exists(input_path):
-        if os.path.exists(output_path):
-            cmd = input(f'File {output_path} already exists. Rewrite? [y/n] -> ').upper()
-            if not cmd.startswith('Y'):
-                sys.exit()
-        try:
-            translator.translate_document_from_filepath(
-                input_path,
-                output_path,
-                target_lang=args.targetlanguage.upper()
-            )
-        except deepl.exceptions.AuthorizationException:
-            print('Authentication Failure. Check API key')
+def check_file_existence(path):
+    if os.path.exists(path):
+        cmd = input(f'File {path} already exists. Overwrite? [y/n] -> ').upper()
+        if not cmd.startswith('Y'):
             sys.exit()
 
-        print(f'Output has been saved in {output_path}')
 
+def verify_target_language(target_lang):
+    if target_lang.upper() not in TARGET_LANGUAGES:
+        click.secho(f'Target language {target_lang} is not recognised.', fg='red')
+        click.secho(f'Please, use one of the following: {TARGET_LANGUAGES}', fg='blue')
+        sys.exit()
+
+
+def translate_text(target_lang, text, key):
+    translator = init_translator(key)
+    verify_target_language(target_lang)
+    try:
+        return translator.translate_text(text=text, target_lang=target_lang.upper())
+    except deepl.exceptions.AuthorizationException:
+        click.secho('Authentication Failure. Check API key', fg='red')
+        sys.exit()
+    except ValueError:
+        click.secho('Key must not be empty', fg='red')
+        sys.exit()
+
+
+def translate_file(target_lang, key, input_file_path, output_file_path):
+    translator = init_translator(key)
+    verify_target_language(target_lang)
+    check_file_existence(output_file_path)
+    try:
+        translator.translate_document_from_filepath(
+            input_file_path,
+            output_file_path,
+            target_lang=target_lang.upper()
+        )
+        return True
+    except deepl.exceptions.AuthorizationException:
+        click.secho('Authentication Failure. Check API key', fg='red')
+        sys.exit()
+
+@click.group()
+@click.option('-k', '--key', type=str, help='Your DeepL API key')
+@click.option('-kf', '--keyfile', type=click.types.File(mode='r'),
+              help='File containing DeepL API key (should contain ONLY key')
+@click.pass_context
+def init(ctx, key, keyfile):
+    ctx.ensure_object(dict)
+    if key:
+        ctx.obj['KEY'] = key
+    elif keyfile:
+        ctx.obj['KEY'] = keyfile.read()
     else:
-        print(f'File {input_path} does not exist')
+        ctx.obj['KEY'] = None
+
+
+@init.command()
+@click.option('-tl', '--target-language', required=True, prompt='Language of translation',
+              help='Language of translation')
+@click.argument('text')
+@click.pass_context
+def text(ctx, target_language, text):
+    key = ctx.obj['KEY']
+    if not key:
+        click.secho('Key was not provided', fg='red')
+        sys.exit()
+    click.echo(translate_text(target_language, text, key))
+
+
+@init.command()
+@click.option('-tl', '--target-language', required=True, prompt='Language of translation',
+              help='Language of translation')
+@click.argument('input_file_path', type=click.types.Path(exists=True, dir_okay=False))
+@click.argument('output_file_path', type=click.types.Path(dir_okay=False, writable=True))
+@click.pass_context
+def file(ctx, target_language, input_file_path, output_file_path):
+    key = ctx.obj['KEY']
+    if not key:
+        click.secho('Key was not provided', fg='red')
+        sys.exit()
+    if translate_file(target_language, key, input_file_path, output_file_path):
+        click.secho(f'File {input_file_path} has been successfully translated and saved as '
+                    f'{output_file_path}.', fg='green')
+
+
+if __name__ == '__main__':
+    init()
+
