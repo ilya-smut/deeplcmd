@@ -2,6 +2,7 @@ import sys
 import click
 import deepl
 import os
+import dotenv
 
 TARGET_LANGUAGES = {
     "AR": "Arabic",
@@ -38,6 +39,51 @@ TARGET_LANGUAGES = {
     "UK": "Ukrainian",
     "ZH": "Chinese (simplified)"
 }
+
+
+def attempt_login(key):
+    with open(os.path.join(os.path.dirname(__file__), '.env'), "w") as environment:
+        if environment.writable():
+            return environment.write(f'APIKEY={key}')
+        else:
+            return False
+
+
+def enter_login_details():
+    file_or_manual = input('Do you want to enter a key file or enter key manually? Type "e" to exit. [F/M]?: ')
+    if file_or_manual.upper().startswith('F'):
+        filepath = input('Please, enter a filepath: ')
+        if os.path.isfile(filepath):
+            with open(filepath, 'r') as keyfile:
+                key = keyfile.read()
+                if attempt_login(key):
+                    click.secho('Successful login', fg='green')
+                else:
+                    click.secho('Login Unsuccessful', fg='red')
+                    sys.exit()
+        else:
+            click.secho(f'File {filepath} does not exist or is a directory', fg='red')
+            enter_login_details()
+
+    elif file_or_manual.upper().startswith('M'):
+        key = input('Please, enter deepl API key: ')
+        if attempt_login(key):
+            click.secho('Successful login', fg='green')
+        else:
+            click.secho('Login Unsuccessful', fg='red')
+            sys.exit()
+
+    elif file_or_manual.upper().startswith('E'):
+        sys.exit()
+    else:
+        enter_login_details()
+
+
+def is_logged_in():
+    if os.getenv('APIKEY'):
+        return True
+    else:
+        return False
 
 
 def init_translator(key):
@@ -86,19 +132,46 @@ def translate_file(target_lang, key, input_file_path, output_file_path):
         click.secho('Authentication Failure. Check API key', fg='red')
         sys.exit()
 
+
 @click.group()
 @click.option('-k', '--key', type=str, help='Your DeepL API key')
 @click.option('-kf', '--keyfile', type=click.types.File(mode='r'),
               help='File containing DeepL API key (should contain ONLY key')
 @click.pass_context
 def init(ctx, key, keyfile):
+    dotenv.load_dotenv()
     ctx.ensure_object(dict)
     if key:
         ctx.obj['KEY'] = key
     elif keyfile:
         ctx.obj['KEY'] = keyfile.read()
+    elif is_logged_in():
+        ctx.obj['KEY'] = os.getenv('APIKEY')
     else:
         ctx.obj['KEY'] = None
+
+
+@init.command()
+@click.option('-k', '--key', type=str, help='Your DeepL API key')
+@click.option('-kf', '--keyfile', type=click.types.File(mode='r'),
+              help='File containing DeepL API key (should contain ONLY key')
+def login(key, keyfile):
+    if key:
+        if attempt_login(key):
+            click.secho('Successful login', fg='green')
+        else:
+            click.secho('Login Unsuccessful', fg='red')
+            sys.exit()
+
+    elif keyfile:
+        if attempt_login(keyfile.read()):
+            click.secho('Successful login', fg='green')
+        else:
+            click.secho('Login Unsuccessful', fg='red')
+            sys.exit()
+    else:
+        enter_login_details()
+
 
 
 @init.command()
@@ -132,4 +205,3 @@ def file(ctx, target_language, input_file_path, output_file_path):
 
 if __name__ == '__main__':
     init()
-

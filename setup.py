@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='deeplcmd',
-    version='0.1.0',
+    version='0.1.1',
     py_modules=['deeplcmd'],
     install_requires=[
         'Click',

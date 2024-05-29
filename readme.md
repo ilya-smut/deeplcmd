@@ -1,86 +1,56 @@
-# deeplcmd
+# DeepLCMD
 
-A command line application that uses the [DeepL Translator API](https://www.deepl.com/en/pro-api) to translate text or documents into one of the supported languages. The DeepL API has a free plan that allows for up to 500,000 characters to be translated.
+DeepLCMD is a Python-based command line tool that utilizes the DeepL API to translate text and documents into a variety of languages.
 
-## Usage
+## Features
 
-You can use this application to translate a string of text directly or to translate a document.
-
-The syntax for translating text is as follows:
+- Translate text directly from the command line
+- Translate documents from a given file path
+- Supports a variety of target languages
 
 ## Installation
-```commandline
+```bash
 git clone https://github.com/ilya-smut/deeplcmd
 cd deeplcmd
 pip install -e .
 ```
 Please, note. You may want to create a virtual environment for the installation of the script
-```commandline
+```bash
 python -m venv .venv
 .venv/bin/activate
 ```
 read more about virtual environments here https://docs.python.org/3/library/venv.html
 
-```commandline
-deeplcmd -t "text to be translated" -tl "target language code" -k "your deepl API key"
+## Usage
+
+Before using DeepLCMD, you need to login with your DeepL API key. You can do this directly on the command line using the `-k` option or by supplying a file containing the key using the `-kf` option. If no key is provided, you will be prompted to enter it.
+
+```bash
+deeplcmd login -k YOUR_API_KEY
 
 ```
 
-```commandline
-deeplcmd -t "text to be translated" -tl "target language code" -kf "file containing deepl API key"
-```
+OR
 
-The syntax for translating a document is as follows:
-
-```commandline
-deeplcmd -f "input file" "output file" -tl "target language" -kf "file containing deepl API key"
+```bash
+deeplcmd login -kf PATH_TO_YOUR_KEYFILE
 
 ```
 
-### Options
+You can translate text using the `text` command:
 
-- `t`, `-text`: The text to be translated
-- `-file`: The input file and output file for the document to be translated
-- `tl`, `-targetlanguage`: The language of translation. This is required.
-- `-keyfile`, `kf`: The file containing the DeepL API key
-- `k`, `-key`: Your DeepL API key
+```bash
+deeplcmd text -tl TARGET_LANGUAGE "Your text here"
 
-### Supported Languages
+```
 
-The supported languages are as follows:
+You can also translate documents using the `file` command:
 
-- Arabic
-- Bulgarian
-- Czech
-- Danish
-- German
-- Greek
-- English (British)
-- English (American)
-- Spanish
-- Estonian
-- Finnish
-- French
-- Hungarian
-- Indonesian
-- Italian
-- Japanese
-- Korean
-- Lithuanian
-- Latvian
-- Norwegian Bokmål
-- Dutch
-- Polish
-- Portuguese (unspecified variant for backward compatibility; please select PT-BR or PT-PT instead)
-- Portuguese (Brazilian)
-- Portuguese (all Portuguese varieties excluding Brazilian Portuguese)
-- Romanian
-- Russian
-- Slovak
-- Slovenian
-- Swedish
-- Turkish
-- Ukrainian
-- Chinese (simplified)
+```bash
+deeplcmd file -tl TARGET_LANGUAGE INPUT_FILE OUTPUT_FILE
 
-Please note that you need to have a DeepL API key to use this application. You can obtain a key by signing up for a free or paid plan on the [DeepL API Pro page](https://www.deepl.com/en/pro-api).
+```
+
+In both cases, replace `TARGET_LANGUAGE` with the language you want to translate to. 
+
+Please note that the use of the DeepL API you will need to obtain API key from https://www.deepl.com/pro-api?cta=header-pro-api
