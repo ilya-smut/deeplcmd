@@ -10,9 +10,7 @@ DeepLCMD is a Python-based command line tool that utilizes the DeepL API to tran
 
 ## Installation
 ```bash
-git clone https://github.com/ilya-smut/deeplcmd
-cd deeplcmd
-pip install -e .
+pip install deeplcmd
 ```
 Please, note. You may want to create a virtual environment for the installation of the script
 ```bash
@@ -35,6 +33,13 @@ OR
 ```bash
 deeplcmd login -kf PATH_TO_YOUR_KEYFILE
 
+```
+
+OR
+
+Open an interactive login. Will prompt you for either a filepath or a key
+```bash
+deeplcmd login
 ```
 
 You can translate text using the `text` command:
