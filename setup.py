@@ -70,7 +70,7 @@ setup(
     },
     author="Ilya Smut",
     author_email="ilya.smut.off.g@gmail.com",
-    license="GPL-3.0 license ",
+    license="GPL-3.0 license",
     version='0.1.2',
     py_modules=['deeplcmd'],
     install_requires=[

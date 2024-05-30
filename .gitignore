@@ -1,0 +1,6 @@
+.venv/
+.idea/
+misc/keyfile.txt
+*.egg-info/
+__pycache__/
+.env
