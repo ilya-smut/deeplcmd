@@ -71,7 +71,7 @@ setup(
     author="Ilya Smut",
     author_email="ilya.smut.off.g@gmail.com",
     license="GPL-3.0 license",
-    version='0.1.2',
+    version='0.1.3',
     py_modules=['deeplcmd'],
     install_requires=[
         'Click',
